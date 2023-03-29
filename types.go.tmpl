@@ -1,0 +1,24 @@
+{{define "types"}}
+{{- $typeMap := .TypeMap -}}
+{{- $types := .Types -}}
+{{- $services := .Services -}}
+
+{{- if $types -}}
+
+-- TYPES
+
+{{ range $_, $type := $types -}}
+
+{{- if eq $type.Kind "enum" }}
+{{template "enum" dict "Name" $type.Name "Type" $type.Type "Fields" $type.Fields }}
+{{ end -}}
+
+{{- if eq $type.Kind "struct" }}
+{{template "struct" dict "Name" $type.Name "Fields" $type.Fields "TypeMap" $typeMap}}
+{{ end -}}
+
+{{- end -}}
+{{- end -}}
+
+
+{{- end -}}

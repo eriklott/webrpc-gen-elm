@@ -1,0 +1,15 @@
+{{- define "enum" -}}
+
+
+{{- $name := .Name -}}
+{{- $type := .Type -}}
+{{- $fields := .Fields -}}
+
+
+{{- if $fields -}}
+type {{$name}}
+{{- range $i, $_ := $fields}}
+    {{ if $i }}|{{ else }}={{ end }} {{$name}}{{.Name}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
