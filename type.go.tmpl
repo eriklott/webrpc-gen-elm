@@ -1,14 +1,13 @@
 {{- define "type" -}}
 
 {{- $type := .Type -}}
-{{- $customType := (coalesce .CustomType "") -}}
 {{- $typeMap := .TypeMap -}}
 {{- $optional := .Optional -}}
 {{- $nested := (coalesce .Nested "") -}}
 
 {{- if $optional -}}
     
-    Maybe {{template "type" dict "Type" $type "CustomType" $customType "TypeMap" $typeMap "Nested" true}}
+    Maybe {{template "type" dict "Type" $type "TypeMap" $typeMap "Nested" true}}
 
 {{- else if isMapType $type -}}
     
@@ -19,7 +18,7 @@
 {{- else if isListType $type -}}
 
     {{ if $nested }}({{ end -}}
-    List {{template "type" dict "Type" (listElemType $type) "CustomType" $customType "TypeMap" $typeMap "Nested" true}}
+    List {{template "type" dict "Type" (listElemType $type) "TypeMap" $typeMap "Nested" true}}
     {{- if $nested }}){{ end }}
 
 {{- else if isCoreType $type -}}

@@ -30,11 +30,10 @@
   {{- exit 1 -}}
 {{- end -}}
 
-{{- /* Map webrpc core types to JS. */ -}}
+{{- /* Map webrpc core types to Elm. */ -}}
 {{- $typeMap := dict }}
-{{- set $typeMap "null" "Maybe" -}}
-{{- set $typeMap "any" "Json.Value" -}}
-{{- set $typeMap "byte" "String" -}}
+{{- set $typeMap "any" "Value" -}}
+{{- set $typeMap "byte" "Bytes" -}}
 {{- set $typeMap "bool" "Bool" -}}
 {{- set $typeMap "uint" "Int" -}}
 {{- set $typeMap "uint8" "Int" -}}
@@ -49,7 +48,7 @@
 {{- set $typeMap "float32" "Float" -}}
 {{- set $typeMap "float64" "Float" -}}
 {{- set $typeMap "string" "String" -}}
-{{- set $typeMap "timestamp" "Int" -}}
+{{- set $typeMap "timestamp" "Posix" -}}
 
 module {{get $opts "pkg"}} exposing (..)
 
@@ -61,9 +60,11 @@ module {{get $opts "pkg"}} exposing (..)
 -}
 
 import Http
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode exposing (Decoder, Value)
 import Json.Encode as Encode
-import Time
+import Time exposing (Posix)
+import Bytes exposing (Bytes)
+
 
 
 webRpcVersion : String
@@ -79,13 +80,16 @@ webRpcSchemaVersion =
 webRpcSchemaHash : String
 webRpcSchemaHash =
     "{{.SchemaHash}}"
-    
-
-{{ template "types" dict "Services" .Services "Types" .Types "TypeMap" $typeMap }}
-
-{{- /* Generate client. */ -}}
 
 
+{{ template "types" dict "Types" .Types "TypeMap" $typeMap }}
 
+{{ template "decoders" dict "Types" .Types "TypeMap" $typeMap }}
+
+{{- if $opts.client }}
+{{ template "client" dict "Services" .Services "TypeMap" $typeMap }}
+{{ end -}}
+
+{{ template "helpers" }}
 
 {{- end -}}

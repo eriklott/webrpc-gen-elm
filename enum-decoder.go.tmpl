@@ -1,0 +1,26 @@
+{{- define "enum-decoder" -}}
+
+
+{{- $name := .Name -}}
+{{- $type := .Type -}}
+{{- $fields := .Fields -}}
+
+
+{{- if $fields -}}
+{{$name | camelCase}}Decoder : Decoder {{$name}}
+{{$name | camelCase}}Decoder =
+    let
+        enumDecoder : String -> Decoder {{$name}}
+        enumDecoder str =
+            case str of
+                {{- range $i, $_ := $fields}}
+                "{{.Name}}" -> 
+                    Decode.succeed {{ $name }}{{.Name}}
+                {{- end}}
+                _ -> 
+                    Decode.fail ("unknown value for type {{ $name }}: " ++ str)
+    in
+    Decode.string |> Decode.andThen enumDecoder   
+{{ end -}}
+
+{{- end -}}

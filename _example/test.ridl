@@ -10,11 +10,15 @@ service TestApi
   - GetOne() => (one: Simple)
   - SendOne(one: Simple)
 
-  - GetMulti() => (one: Simple, two: Simple, three: Simple)
-  - SendMulti(one: Simple, two: Simple, three: Simple)
+  - GetList() => (list: []int32)
+
+  - GetMulti() => (one: Simple, two: Simple, three?: []Simple, four: []int32)
+  - SendMulti(one: Simple, two: Simple, three?: Simple)
   
   - GetComplex() => (complex: Complex)
   - SendComplex(complex: Complex)
+
+
 
   # added in v0.11.0
   - GetSchemaError(code: int)
@@ -40,7 +44,7 @@ enum Status: uint32
   - AVAILABLE
   - NOT_AVAILABLE
 
-enum Environment: uint32
+enum EnvironmentCheck: uint32
   - Production
   - Development
 
@@ -56,6 +60,8 @@ struct Complex
   - mapOfUsers: map<string,User>
   - user: User
   - enum: Status
+  - createdAt: timestamp
+  - isActive: bool
   - metaOpt?: map<string,any>
   - metaNestedExampleOpt?: map<string,map<string,uint32>>
   - namesListOpt?: []string
@@ -66,6 +72,8 @@ struct Complex
   - mapOfUsersOpt?: map<string,User>
   - userOpt?: User
   - enumOpt?: Status
+  - createdAtOpt?: timestamp
+  - isActiveOpt?: bool
 
 error   1 Unauthorized    "unauthorized"        HTTP 401
 error   2 ExpiredToken    "expired token"       HTTP 401

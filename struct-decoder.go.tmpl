@@ -1,0 +1,15 @@
+{{- define "struct-decoder" -}}
+
+{{- $name := .Name -}}
+{{- $fields := .Fields -}}
+{{- $typeMap := .TypeMap -}}
+
+{{$name | camelCase}}Decoder : Decoder {{$name}}
+{{$name | camelCase}}Decoder =
+    Decode.succeed {{$name}}
+        {{- range $fields }}
+        |> andMap (
+        {{- if .Optional -}}decodeOptionalField{{- else -}}Decode.field{{- end }} "{{- .Name -}}" {{ template "type-decoder" dict "Type" .Type "TypeMap" $typeMap}})
+        {{- end -}}
+        
+{{- end -}}
