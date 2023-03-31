@@ -3,7 +3,6 @@
 {{- /* Options with default values. */ -}}
 {{- $opts := dict -}}
 {{- set $opts "pkg" (default .Opts.pkg "API") -}}
-{{- set $opts "client" (ternary (in .Opts.client "" "true") true false) -}}
 
 {{- /* Print help on -help. */ -}}
 {{- if exists .Opts "help" -}}
@@ -32,8 +31,8 @@
 
 {{- /* Map webrpc core types to Elm. */ -}}
 {{- $typeMap := dict }}
-{{- set $typeMap "any" "Value" -}}
-{{- set $typeMap "byte" "Bytes" -}}
+{{- set $typeMap "any" "Decode.Value" -}}
+{{- set $typeMap "byte" "String" -}}
 {{- set $typeMap "bool" "Bool" -}}
 {{- set $typeMap "uint" "Int" -}}
 {{- set $typeMap "uint8" "Int" -}}
@@ -50,8 +49,27 @@
 {{- set $typeMap "string" "String" -}}
 {{- set $typeMap "timestamp" "Posix" -}}
 
-module {{get $opts "pkg"}} exposing (..)
-
+module {{get $opts "pkg"}} exposing 
+  ( Request
+  {{- range $i, $t := .Types }}
+  , {{ $t.Name }}
+  {{- end }}
+  {{- range $i, $s := .Services }}
+  , {{ $s.Name }}
+  {{- end }}
+  {{- range $i, $s := .Services }}
+  , {{ $s.Name | camelCase}}
+  {{- end }}  
+  , webRpcVersion
+  , webRpcSchemaVersion
+  , webRpcSchemaHash
+  , withBaseUrl
+  , withCredentials
+  , withTimeout
+  , send
+  )
+  
+  
 {- 
     {{.SchemaName}} {{.SchemaVersion}} {{.SchemaHash}}
     --
@@ -59,12 +77,13 @@ module {{get $opts "pkg"}} exposing (..)
     {{.WebrpcGenCommand}}
 -}
 
+
 import Http
-import Json.Decode as Decode exposing (Decoder, Value)
+import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Time exposing (Posix)
-import Bytes exposing (Bytes)
-
+import Dict exposting (Dict)
+import Iso8601
 
 
 webRpcVersion : String
@@ -82,14 +101,11 @@ webRpcSchemaHash =
     "{{.SchemaHash}}"
 
 
-{{ template "types" dict "Types" .Types "TypeMap" $typeMap }}
-
-{{ template "decoders" dict "Types" .Types "TypeMap" $typeMap }}
-
-{{- if $opts.client }}
-{{ template "client" dict "Services" .Services "TypeMap" $typeMap }}
-{{ end -}}
-
-{{ template "helpers" }}
+{{- template "types" dict "Types" .Types "TypeMap" $typeMap }}
+{{- template "services" dict "Services" .Services "TypeMap" $typeMap }}
+{{- template "request" }}
+{{- template "decoders" dict "Types" .Types "TypeMap" $typeMap }}
+{{- template "encoders" dict "Types" .Types "TypeMap" $typeMap }}
+{{- template "helpers" }}
 
 {{- end -}}

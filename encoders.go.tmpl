@@ -1,0 +1,40 @@
+{{- define "encoders" -}}
+{{- $typeMap := .TypeMap -}}
+{{- $types := .Types -}}
+
+
+-- ENCODERS
+
+
+{{ range $_, $type := $types -}}
+
+{{- if eq $type.Kind "enum" -}}
+{{$type.Name | camelCase}}Encoder : {{$type.Name}} -> Encode.Value
+{{$type.Name | camelCase}}Encoder {{$type.Name | camelCase}} =
+    case {{$type.Name | camelCase}} of
+        {{- range $i, $field := $type.Fields}}
+        {{$type.Name}}{{$field.Name}} ->
+            Encode.string "{{$field.Name}}"
+        {{ end }}
+
+{{ end -}}
+
+{{- if eq $type.Kind "struct" -}}
+{{$type.Name | camelCase}}Encoder : {{$type.Name}} -> Encode.Value
+{{$type.Name | camelCase}}Encoder {{$type.Name | camelCase}} =
+    Encode.object
+        [ {{ range $i, $field := $type.Fields }}
+        {{- if gt $i 0 }}, {{ end }}
+        {{- $jsonKey := $field.Name }}
+        {{- range $meta := $field.Meta }}
+        {{- if exists $meta "json" }}
+			{{- $jsonKey = (get $meta "json") }}
+		{{- end }}
+        {{- end -}}
+        ("{{- $jsonKey -}}", {{ template "encoder" dict "Type" $field.Type "TypeMap" $typeMap "Optional" $field.Optional }})
+        {{ end }}]
+
+
+{{ end -}}
+{{- end -}}
+{{- end -}}

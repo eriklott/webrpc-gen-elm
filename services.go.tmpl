@@ -1,0 +1,82 @@
+{{- define "services" -}}
+
+{{- $typeMap := .TypeMap -}}
+
+{{- if .Services }}
+
+-- SERVICES
+
+
+{{- range $service := .Services }}
+
+
+type alias {{$service.Name}} =
+    {{- range $i, $method := .Methods }}
+    {{ if $i }},{{ else -}} { {{- end}} {{ $method.Name | camelCase}} : {{ template "methodsig" dict "Method" $method "TypeMap" $typeMap }} {{- if eq $i (len $service.Methods) -}} } {{- end }}
+    {{- end }}
+    }
+
+
+{{$service.Name | camelCase }} : {{$service.Name}}
+{{$service.Name | camelCase }} =
+    {{ range $i, $method := .Methods }}
+    {{- if $i }},{{ else -}} { {{- end}} {{ $method.Name | camelCase}} = {{$service.Name | camelCase }}{{$method.Name}} 
+    {{ end -}}
+    }    
+    
+    
+{{ range $method := .Methods }}
+{{- $service.Name | camelCase}}{{$method.Name}} : {{ template "methodsig" dict "Method" $method "TypeMap" $typeMap }}
+{{$service.Name | camelCase}}{{$method.Name}}
+{{- if $method.Inputs }}
+    {{- range $i, $_ := $method.Inputs }} {{.Name}}{{ end }}
+{{- end }} toMsg =
+    let
+        encoder : Encode.Value
+        encoder =
+            {{- if $method.Inputs}}
+            Encode.object
+                [ {{ range $i, $_ := $method.Inputs }}
+                {{- if gt $i 0 }}, {{ end -}}
+                ("{{- .Name -}}", {{ template "encoder" dict "Type" .Type "TypeMap" $typeMap "Optional" .Optional }})
+                {{ end }}]
+            {{- else }}
+            Encode.object []
+            {{- end }}
+
+        {{ if eq (len $method.Outputs) 0 -}}
+        decoder : Decoder ()
+        decoder = 
+            Decode.succeed ()
+            
+        {{- else if eq (len $method.Outputs) 1 -}}
+        {{- $output := index $method.Outputs 0 -}}
+        decoder : Decoder {{template "type" dict "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "Nested" true}}
+        decoder =
+            {{ if $output.Optional }}decodeOptionalField{{- else -}}Decode.field{{- end }} "{{- $output.Name -}}" {{ template "decoder" dict "Type" $output.Type "TypeMap" $typeMap}}
+        
+        {{- else if gt (len $method.Outputs) 1 -}}
+        decoder : Decoder { {{range $i, $_ := $method.Outputs}}{{if gt $i 0}}, {{end}}{{.Name}} : {{template "type" dict "Type" .Type "Optional" .Optional "TypeMap" $typeMap}}{{end}} }    
+        decoder =
+            Decode.succeed response
+                {{- range $method.Outputs }}
+                |> andMap ({{ if .Optional }}decodeOptionalField{{ else }}Decode.field{{ end }} "{{.Name}}" {{ template "decoder" dict "Type" .Type "TypeMap" $typeMap}})
+                {{- end }}  
+
+        response : {{range $method.Outputs}}{{template "type" dict "Type" .Type "Optional" .Optional "TypeMap" $typeMap}} -> {{end}}{ {{ range $i, $_ := $method.Outputs}}{{if gt $i 0}}, {{end}}{{.Name}} : {{template "type" dict "Type" .Type "Optional" .Optional "TypeMap" $typeMap}}{{end}} }
+        response {{range $method.Outputs}}{{.Name}} {{end}}=
+            { {{ range $i, $_ := $method.Outputs}}{{if gt $i 0}}, {{end}}{{.Name}} = {{.Name}}{{end}} }
+        {{- end }}
+    in
+    request
+        { url = "/rpc/{{- $service.Name -}}/{{- $method.Name -}}"
+        , encoder = encoder
+        , decoder = decoder
+        , toMsg = toMsg
+        }
+
+
+{{ end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}

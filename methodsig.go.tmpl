@@ -1,0 +1,19 @@
+{{- define "methodsig" -}}
+
+{{- $method := .Method -}}
+{{- $typeMap := .TypeMap -}}
+
+{{- if $method.Inputs -}}
+    {{- range $i, $input := $method.Inputs }}{{template "type" dict "Type" $input.Type "Optional" $input.Optional "TypeMap" $typeMap}} -> {{ end }}
+{{- end -}}
+
+{{- if eq (len $method.Outputs) 0 -}}
+    (Result Http.Error () -> msg) -> Request () msg
+{{- else if eq (len $method.Outputs) 1 -}}
+    {{- $output := index $method.Outputs 0 -}}
+    (Result Http.Error {{template "type" dict "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "Nested" true}} -> msg) -> Request {{template "type" dict "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "Nested" true}} msg
+{{- else if gt (len $method.Outputs) 1 -}}
+    (Result Http.Error { {{ range $i, $output := $method.Outputs }}{{if $i}}, {{end}}{{$output.Name}} : {{template "type" dict "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap}}{{ end }} } -> msg) -> Request { {{ range $i, $output := $method.Outputs }}{{if $i}}, {{end}}{{$output.Name}} : {{template "type" dict "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap}}{{ end }} } msg
+{{- end }}
+
+{{- end }}

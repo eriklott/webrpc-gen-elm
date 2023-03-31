@@ -18,10 +18,14 @@ service TestApi
   - GetComplex() => (complex: Complex)
   - SendComplex(complex: Complex)
 
+  - SendComplexArgs(intMap: map<int64,string>)
+
 
 
   # added in v0.11.0
   - GetSchemaError(code: int)
+
+
 
 struct Simple
   - id: int
@@ -39,6 +43,10 @@ struct User
 
   - role: string
     + go.tag.db = -
+
+  - createdAt: timestamp
+  - singleByte: byte
+  - bytes: []byte
 
 enum Status: uint32
   - AVAILABLE
@@ -74,6 +82,7 @@ struct Complex
   - enumOpt?: Status
   - createdAtOpt?: timestamp
   - isActiveOpt?: bool
+  - intmap: map<int64,bool>
 
 error   1 Unauthorized    "unauthorized"        HTTP 401
 error   2 ExpiredToken    "expired token"       HTTP 401

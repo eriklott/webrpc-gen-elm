@@ -1,24 +1,50 @@
-{{define "decoders"}}
+{{- define "decoders" -}}
+
 {{- $typeMap := .TypeMap -}}
 {{- $types := .Types -}}
 
 
-{{- if $types -}}
-
 -- DECODERS
+
 
 {{ range $_, $type := $types -}}
 
-{{- if eq $type.Kind "enum" }}
-{{template "enum-decoder" dict "Name" $type.Name "Type" $type.Type "Fields" $type.Fields }}
+{{- if eq $type.Kind "enum" -}}
+{{$type.Name | camelCase}}Decoder : Decoder {{$type.Name}}
+{{$type.Name | camelCase}}Decoder =
+    let
+        enumDecoder : String -> Decoder {{$type.Name}}
+        enumDecoder str =
+            case str of
+                {{- range $i, $field := $type.Fields}}
+                "{{$field.Name}}" -> 
+                    Decode.succeed {{ $type.Name }}{{$field.Name}}
+                {{- end}}
+                _ -> 
+                    Decode.fail ("unknown value for type {{ $type.Name }}: " ++ str)
+    in
+    Decode.string |> Decode.andThen enumDecoder  
+
+
 {{ end -}}
 
-{{- if eq $type.Kind "struct" }}
-{{template "struct-decoder" dict "Name" $type.Name "Fields" $type.Fields "TypeMap" $typeMap}}
+{{- if eq $type.Kind "struct" -}}
+{{$type.Name | camelCase}}Decoder : Decoder {{$type.Name}}
+{{$type.Name | camelCase}}Decoder =
+    Decode.succeed {{$type.Name}}
+        {{- range $field := $type.Fields }}
+        {{- $jsonKey := $field.Name }}
+        {{- range $meta := $field.Meta }}
+        {{- if exists $meta "json" }}
+			{{- $jsonKey = (get $meta "json") }}
+		{{- end }}
+        {{- end }}
+        |> andMap (
+        {{- if $field.Optional -}}decodeOptionalField{{- else -}}Decode.field{{- end }} "{{- $jsonKey -}}" {{ template "decoder" dict "Type" $field.Type "TypeMap" $typeMap}})
+        {{- end }}
+
+
 {{ end -}}
 
 {{- end -}}
-{{- end -}}
-
-
 {{- end -}}

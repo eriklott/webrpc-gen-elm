@@ -1,0 +1,33 @@
+{{- define "encoder" -}}
+
+{{- $type := .Type -}}
+{{- $typeMap := .TypeMap -}}
+{{- $optional := (coalesce .Optional "") -}}
+{{- $nested := (coalesce .Nested "") -}}
+
+{{- if $optional -}}
+
+    encodeMaybe {{ template "encoder" dict "Type" $type "TypeMap" $typeMap "Optional" false "Nested" true -}}
+
+{{- else if isMapType $type -}}
+
+    {{- if $nested}}({{ end -}}
+    encodeDict {{ if eq (mapValueType $type) "Int" }}String.fromInt{{ else }}identity{{ end }} {{ template "encoder" dict "Type" (mapValueType $type) "TypeMap" $typeMap "Nested" true}}
+    {{- if $nested}}){{ end -}}
+    
+{{- else if isListType $type -}}
+
+    {{- if $nested}}({{ end -}}
+    Encode.list {{ template "encoder" dict "Type" (listElemType $type) "TypeMap" $typeMap "Nested" true}}
+    {{- if $nested}}){{ end -}}
+
+{{- else if isCoreType $type -}}
+
+    Encode.{{ get $typeMap $type | camelCase}}
+    
+{{- else -}}{{- /* structs */ -}}
+
+    {{ print $type | camelCase }}Encoder
+
+{{- end -}}
+{{- end -}}

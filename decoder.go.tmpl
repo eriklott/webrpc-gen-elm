@@ -1,0 +1,28 @@
+{{- define "decoder" -}}
+
+{{- $type := .Type -}}
+{{- $typeMap := .TypeMap -}}
+
+
+{{- if isMapType $type -}}
+    
+    (decodeDict {{template "decoder" dict "Type" (mapKeyType $type) "TypeMap" $typeMap}} {{template "decoder" dict "Type" (mapValueType $type) "TypeMap" $typeMap}})
+    
+{{- else if isListType $type -}}
+
+    (Decode.list {{template "decoder" dict "Type" (listElemType $type) "TypeMap" $typeMap}})
+
+{{- else if (eq (print $type) "timestamp") -}}
+
+    Iso8601.decoder
+
+{{- else if isCoreType $type -}}
+    
+    Decode.{{ get $typeMap $type | camelCase}}
+
+{{- else -}}{{- /* structs */ -}}
+
+    {{ print $type | camelCase }}Decoder
+
+{{- end -}}
+{{- end -}}

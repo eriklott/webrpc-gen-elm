@@ -1,0 +1,77 @@
+{{- define "request" -}}
+-- REQUEST
+
+
+type Request =
+    Request response msg
+        { url: String
+        , decoder : Decoder msg
+        , encoder : Encode.Value
+        , toMsg : (Result Http.Error response -> msg)
+        , baseUrl : String
+        , withCredentials : Bool
+        , timeout : Maybe Float
+        }
+
+
+newRequest : {url: String, decoder : Decoder msg, encoder : Encode.Value, toMsg : (Result Http.Error response -> msg)} -> Request response msg
+newRequest { url, decoder, encoder, toMsg } =
+    Request
+        { url = url
+        , decoder = decoder
+        , encoder = encoder
+        , toMsg = toMsg
+        , baseUrl = ""
+        , withCredentials = False
+        , timeout = Just 3000
+        }
+
+
+withBaseUrl : String -> Request response msg -> Request response msg
+withBaseUrl baseUrl request =
+    { request | baseUrl = baseUrl }
+
+
+withCredentials : Bool -> Request response msg -> Request request msg
+withCredentials withCredentials request =
+    { request | withCredentials = withCredentials }
+
+
+withTimeout : Float -> Request response msg -> Request response msg
+withTimeout timeout request =
+    { request | timeout = Just timeout }
+
+
+send : Request response msg -> Cmd msg
+send request =
+    let
+        url =
+            request.baseUrl ++ request.url
+
+        body =
+            request.encoder
+
+        decoder =
+            request.decoder
+
+        toMsg =
+            request.toMsg
+
+        withCredentials =
+            request.withCredentials
+
+        timeout =
+            request.timeout
+    in
+        Http.send toMsg
+            { url = url
+            , method = "POST"
+            , headers = []
+            , body = Http.jsonBody body
+            , expect = Http.expectJson toMsg decoder
+            , timeout = timeout
+            , withCredentials = withCredentials
+            }
+
+
+{{ end -}}
