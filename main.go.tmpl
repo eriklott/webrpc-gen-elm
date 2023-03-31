@@ -2,7 +2,10 @@
 
 {{- /* Options with default values. */ -}}
 {{- $opts := dict -}}
-{{- set $opts "pkg" (default .Opts.pkg "API") -}}
+{{- set $opts "module" (default .Opts.model "API") -}}
+{{- set $opts "timeout" (default .Opts.timeout "") -}}
+{{- set $opts "baseurl" (default .Opts.baseurl "") -}}
+{{- set $opts "credentials" (exists .Opts "credentials") -}}
 
 {{- /* Print help on -help. */ -}}
 {{- if exists .Opts "help" -}}
@@ -49,10 +52,10 @@
 {{- set $typeMap "string" "String" -}}
 {{- set $typeMap "timestamp" "Posix" -}}
 
-module {{get $opts "pkg"}} exposing 
+module {{get $opts "module"}} exposing 
   ( Request
   {{- range $i, $t := .Types }}
-  , {{ $t.Name }}
+  , {{ $t.Name }}{{ if eq $t.Kind "enum" }}(..){{end}}
   {{- end }}
   {{- range $i, $s := .Services }}
   , {{ $s.Name }}
@@ -103,9 +106,10 @@ webRpcSchemaHash =
 
 {{- template "types" dict "Types" .Types "TypeMap" $typeMap }}
 {{- template "services" dict "Services" .Services "TypeMap" $typeMap }}
-{{- template "request" }}
+{{- template "request" dict "Opts" $opts }}
 {{- template "decoders" dict "Types" .Types "TypeMap" $typeMap }}
 {{- template "encoders" dict "Types" .Types "TypeMap" $typeMap }}
+{{- template "errors" }}
 {{- template "helpers" }}
 
 {{- end -}}

@@ -1,4 +1,7 @@
 {{- define "request" -}}
+
+{{- $opts := .Opts -}}
+
 -- REQUEST
 
 
@@ -7,23 +10,23 @@ type Request =
         { url: String
         , decoder : Decoder msg
         , encoder : Encode.Value
-        , toMsg : (Result Http.Error response -> msg)
+        , toMsg : (Result Error response -> msg)
         , baseUrl : String
         , withCredentials : Bool
         , timeout : Maybe Float
         }
 
 
-newRequest : {url: String, decoder : Decoder msg, encoder : Encode.Value, toMsg : (Result Http.Error response -> msg)} -> Request response msg
+newRequest : {url: String, decoder : Decoder msg, encoder : Encode.Value, toMsg : (Result Error response -> msg)} -> Request response msg
 newRequest { url, decoder, encoder, toMsg } =
     Request
         { url = url
         , decoder = decoder
         , encoder = encoder
         , toMsg = toMsg
-        , baseUrl = ""
-        , withCredentials = False
-        , timeout = Just 3000
+        , baseUrl = "{{$opts.baseurl}}"
+        , withCredentials = {{ if $opts.credentials }}True{{else}}False{{end}}
+        , timeout = {{ if $opts.timeout }}Just {{ $opts.timeout }}{{ else }}Nothing{{ end }}
         }
 
 
@@ -68,7 +71,7 @@ send request =
             , method = "POST"
             , headers = []
             , body = Http.jsonBody body
-            , expect = Http.expectJson toMsg decoder
+            , expect = expectJson toMsg decoder
             , timeout = timeout
             , withCredentials = withCredentials
             }
