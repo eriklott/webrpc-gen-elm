@@ -1,0 +1,25 @@
+{
+  "name": "webrpc-gen-elm-test",
+  "version": "1.0.0",
+  "description": "Webrpc Elm generator test",
+  "main": "index.js",
+  "scripts": {
+    "test": "./test.sh",
+    "elm-test": "elm-test './*Tests.elm'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eriklott/webrpc-gen-elm.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/eriklott/webrpc-gen-elm/issues"
+  },
+  "homepage": "https://github.com/eriklott/webrpc-gen-elm#readme",
+  "devDependencies": {
+    "elm": "^0.19.1-5",
+    "elm-format": "^0.8.6",
+    "elm-test": "^0.19.1-revision12"
+  }
+}

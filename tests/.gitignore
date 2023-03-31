@@ -1,0 +1,5 @@
+bin/
+node_modules/
+elm-stuff/
+test.ridl
+src/API.elm
