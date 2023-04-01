@@ -1,0 +1,61 @@
+{{- define "value" -}}
+
+
+-- Value
+
+
+type Value
+    = Object (List ( String, Value ))
+    | Array (List Value)
+    | Bool Bool
+    | Null
+    | Numeric Float
+    | String String
+
+
+valueDecoder : Decoder Value
+valueDecoder =
+    let
+        objectValueDecoder =
+            Decode.keyValuePairs (Decode.lazy (\_ -> valueDecoder))
+                |> Decode.map Object
+
+        arrayValueDecoder =
+            Decode.list (Decode.lazy (\_ -> valueDecoder))
+                |> Decode.map Array
+    in
+    Decode.oneOf
+        [ objectValueDecoder
+        , arrayValueDecoder
+        , Decode.null Null
+        , Decode.string |> Decode.map String
+        , Decode.float |> Decode.map Numeric
+        , Decode.bool |> Decode.map Bool
+        ]
+
+
+valueEncoder : Value -> Encode.Value
+valueEncoder value =
+    case value of
+        Object pairs ->
+            pairs
+                |> List.map (\( k, v ) -> ( k, valueEncoder v ))
+                |> Encode.object
+
+        Array values ->
+            Encode.list valueEncoder values
+            
+        Bool bool ->
+            Encode.bool bool
+
+        Null ->
+            Encode.null
+
+        Numeric float ->
+            Encode.float float
+
+        String string ->
+            Encode.string string
+
+
+{{ end }}

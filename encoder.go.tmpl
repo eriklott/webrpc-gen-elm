@@ -12,7 +12,7 @@
 {{- else if isMapType $type -}}
 
     {{- if $nested}}({{ end -}}
-    encodeDict {{ if eq (mapValueType $type) "Int" }}String.fromInt{{ else }}identity{{ end }} {{ template "encoder" dict "Type" (mapValueType $type) "TypeMap" $typeMap "Nested" true}}
+    Encode.dict {{ if eq (mapValueType $type) "Int" }}String.fromInt{{ else }}identity{{ end }} {{ template "encoder" dict "Type" (mapValueType $type) "TypeMap" $typeMap "Nested" true}}
     {{- if $nested}}){{ end -}}
     
 {{- else if isListType $type -}}
@@ -23,8 +23,16 @@
 
 {{- else if isCoreType $type -}}
 
+    {{- if (eq (printf "%v" $type) "any" ) -}}
+
+    valueEncoder
+
+    {{- else -}}
+
     Encode.{{ get $typeMap $type | camelCase}}
-    
+
+    {{- end -}}
+
 {{- else -}}{{- /* structs */ -}}
 
     {{ print $type | camelCase }}Encoder

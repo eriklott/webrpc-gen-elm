@@ -1,4 +1,4 @@
-{{- define "errors" }}
+{{- define "errors" -}}
 -- ERRORS
 
 
@@ -52,7 +52,7 @@ expectJson toMsg decoder =
                         Err err ->
                             Err (BadBody (Decode.errorToString err))
 
-                Http.GoodStatus_ metadata body ->
+                Http.GoodStatus_ _ body ->
                     case Decode.decodeString decoder body of
                         Ok value ->
                             Ok value

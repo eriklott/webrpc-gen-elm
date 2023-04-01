@@ -5,20 +5,21 @@
 -- REQUEST
 
 
-type Request =
-    Request response msg
+type Request response msg =
+    Request 
         { url: String
-        , decoder : Decoder msg
+        , decoder : Decoder response
         , encoder : Encode.Value
         , toMsg : (Result Error response -> msg)
         , baseUrl : String
         , withCredentials : Bool
+        , tracker : Maybe String
         , timeout : Maybe Float
         }
 
 
-newRequest : {url: String, decoder : Decoder msg, encoder : Encode.Value, toMsg : (Result Error response -> msg)} -> Request response msg
-newRequest { url, decoder, encoder, toMsg } =
+request : {url: String, decoder : Decoder response, encoder : Encode.Value, toMsg : (Result Error response -> msg)} -> Request response msg
+request { url, decoder, encoder, toMsg } =
     Request
         { url = url
         , decoder = decoder
@@ -27,54 +28,67 @@ newRequest { url, decoder, encoder, toMsg } =
         , baseUrl = "{{$opts.baseurl}}"
         , withCredentials = {{ if $opts.credentials }}True{{else}}False{{end}}
         , timeout = {{ if $opts.timeout }}Just {{ $opts.timeout }}{{ else }}Nothing{{ end }}
+        , tracker = Nothing
         }
 
 
 withBaseUrl : String -> Request response msg -> Request response msg
-withBaseUrl baseUrl request =
-    { request | baseUrl = baseUrl }
+withBaseUrl baseUrl (Request req) =
+    Request { req | baseUrl = baseUrl }
 
 
-withCredentials : Bool -> Request response msg -> Request request msg
-withCredentials withCredentials request =
-    { request | withCredentials = withCredentials }
+withCredentials : Bool -> Request response msg -> Request response msg
+withCredentials withCreds (Request req) =
+    Request { req | withCredentials = withCreds }
 
 
-withTimeout : Float -> Request response msg -> Request response msg
-withTimeout timeout request =
-    { request | timeout = Just timeout }
+withTimeout : Maybe Float -> Request response msg -> Request response msg
+withTimeout timeout (Request req) =
+    Request { req | timeout = timeout }
+
+
+withTracker : Maybe String -> Request response msg -> Request response msg
+withTracker tracker (Request req) =
+    Request { req | tracker = tracker }
 
 
 send : Request response msg -> Cmd msg
-send request =
+send (Request req) =
     let
         url =
-            request.baseUrl ++ request.url
+            req.baseUrl ++ req.url
 
         body =
-            request.encoder
+            req.encoder
 
         decoder =
-            request.decoder
+            req.decoder
 
         toMsg =
-            request.toMsg
-
-        withCredentials =
-            request.withCredentials
+            req.toMsg
 
         timeout =
-            request.timeout
+            req.timeout
+
+        tracker =
+            req.tracker            
+
+        httpRequest =
+            if req.withCredentials then
+                Http.riskyRequest
+
+            else
+                Http.request
     in
-        Http.send toMsg
-            { url = url
-            , method = "POST"
-            , headers = []
-            , body = Http.jsonBody body
-            , expect = expectJson toMsg decoder
-            , timeout = timeout
-            , withCredentials = withCredentials
-            }
+    httpRequest
+        { method = "POST"
+        , headers = []
+        , url = url
+        , body = Http.jsonBody body
+        , expect = expectJson toMsg decoder
+        , timeout = timeout
+        , tracker = tracker
+        }
 
 
-{{ end -}}
+{{ end }}

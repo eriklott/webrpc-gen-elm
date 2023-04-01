@@ -34,7 +34,7 @@
 
 {{- /* Map webrpc core types to Elm. */ -}}
 {{- $typeMap := dict }}
-{{- set $typeMap "any" "Decode.Value" -}}
+{{- set $typeMap "any" "Value" -}}
 {{- set $typeMap "byte" "String" -}}
 {{- set $typeMap "bool" "Bool" -}}
 {{- set $typeMap "uint" "Int" -}}
@@ -53,7 +53,10 @@
 {{- set $typeMap "timestamp" "Posix" -}}
 
 module {{get $opts "module"}} exposing 
-  ( Request
+  ( Value(..)
+  , Error(..)
+  , ErrorResponse
+  , Request
   {{- range $i, $t := .Types }}
   , {{ $t.Name }}{{ if eq $t.Kind "enum" }}(..){{end}}
   {{- end }}
@@ -69,6 +72,7 @@ module {{get $opts "module"}} exposing
   , withBaseUrl
   , withCredentials
   , withTimeout
+  , withTracker
   , send
   )
   
@@ -85,7 +89,7 @@ import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Time exposing (Posix)
-import Dict exposting (Dict)
+import Dict exposing (Dict)
 import Iso8601
 
 
@@ -110,6 +114,7 @@ webRpcSchemaHash =
 {{- template "decoders" dict "Types" .Types "TypeMap" $typeMap }}
 {{- template "encoders" dict "Types" .Types "TypeMap" $typeMap }}
 {{- template "errors" }}
+{{- template "value" }}
 {{- template "helpers" }}
 
 {{- end -}}

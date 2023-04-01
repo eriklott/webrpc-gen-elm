@@ -31,7 +31,7 @@
 			{{- $jsonKey = (get $meta "json") }}
 		{{- end }}
         {{- end -}}
-        ("{{- $jsonKey -}}", {{ template "encoder" dict "Type" $field.Type "TypeMap" $typeMap "Optional" $field.Optional }})
+        ("{{- $jsonKey -}}", {{ template "encoder" dict "Type" $field.Type "TypeMap" $typeMap "Optional" $field.Optional }} {{$type.Name | camelCase}}.{{$field.Name}})
         {{ end }}]
 
 

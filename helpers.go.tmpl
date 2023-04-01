@@ -27,25 +27,25 @@ decodeOptionalField fieldName decoder =
 
 
 decodeDict : Decoder comparable -> Decoder v -> Decoder (Dict comparable v)
-decodeDict keyDecoder valueDecoder =
-    keyValuePairs valueDecoder
-        |> andThen (decodeDictFromTuples keyDecoder)
+decodeDict keyDecoder valDecoder =
+    Decode.keyValuePairs valDecoder
+        |> Decode.andThen (decodeDictFromTuples keyDecoder)
 
 
 decodeDictFromTuples : Decoder comparable -> List ( String, v ) -> Decoder (Dict comparable v)
 decodeDictFromTuples keyDecoder tuples =
     case tuples of
         [] ->
-            succeed Dict.empty
+            Decode.succeed Dict.empty
 
         ( strKey, value ) :: rest ->
-            case decodeString keyDecoder strKey of
+            case Decode.decodeString keyDecoder strKey of
                 Ok key ->
                     decodeDictFromTuples keyDecoder rest
-                        |> andThen (Dict.insert key value >> succeed)
+                        |> Decode.andThen (Dict.insert key value >> Decode.succeed)
 
                 Err error ->
-                    fail (errorToString error)    
+                    Decode.fail (Decode.errorToString error)    
 
 
 encodeMaybe : (a -> Encode.Value) -> Maybe a -> Encode.Value

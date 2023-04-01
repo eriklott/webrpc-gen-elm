@@ -10,14 +10,14 @@
 {{- range $service := .Services }}
 
 
-type alias {{$service.Name}} =
+type alias {{$service.Name}} msg =
     {{- range $i, $method := .Methods }}
     {{ if $i }},{{ else -}} { {{- end}} {{ $method.Name | camelCase}} : {{ template "methodsignature" dict "Method" $method "TypeMap" $typeMap }} {{- if eq $i (len $service.Methods) -}} } {{- end }}
     {{- end }}
     }
 
 
-{{$service.Name | camelCase }} : {{$service.Name}}
+{{$service.Name | camelCase }} : {{$service.Name}} msg
 {{$service.Name | camelCase }} =
     {{ range $i, $method := .Methods }}
     {{- if $i }},{{ else -}} { {{- end}} {{ $method.Name | camelCase}} = {{$service.Name | camelCase }}{{$method.Name}} 
@@ -36,9 +36,9 @@ type alias {{$service.Name}} =
         encoder =
             {{- if $method.Inputs}}
             Encode.object
-                [ {{ range $i, $_ := $method.Inputs }}
+                [ {{ range $i, $input := $method.Inputs }}
                 {{- if gt $i 0 }}, {{ end -}}
-                ("{{- .Name -}}", {{ template "encoder" dict "Type" .Type "TypeMap" $typeMap "Optional" .Optional }})
+                ("{{- $input.Name -}}", {{ template "encoder" dict "Type" $input.Type "TypeMap" $typeMap "Optional" $input.Optional }} {{ $input.Name }})
                 {{ end }}]
             {{- else }}
             Encode.object []

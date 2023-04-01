@@ -19,7 +19,7 @@
                 {{- range $i, $field := $type.Fields}}
                 "{{$field.Name}}" -> 
                     Decode.succeed {{ $type.Name }}{{$field.Name}}
-                {{- end}}
+                {{ end }}
                 _ -> 
                     Decode.fail ("unknown value for type {{ $type.Name }}: " ++ str)
     in

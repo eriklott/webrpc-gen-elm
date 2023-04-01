@@ -17,9 +17,17 @@
     Iso8601.decoder
 
 {{- else if isCoreType $type -}}
+
+    {{- if (eq (printf "%s" $type) "any") -}}
+
+    valueDecoder
+    
+    {{- else -}}
     
     Decode.{{ get $typeMap $type | camelCase}}
-
+    
+    {{- end -}}
+    
 {{- else -}}{{- /* structs */ -}}
 
     {{ print $type | camelCase }}Decoder
