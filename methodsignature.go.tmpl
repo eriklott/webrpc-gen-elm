@@ -8,12 +8,12 @@
 {{- end -}}
 
 {{- if eq (len $method.Outputs) 0 -}}
-    (Result Error () -> msg) -> Request () msg
+    Request ()
 {{- else if eq (len $method.Outputs) 1 -}}
     {{- $output := index $method.Outputs 0 -}}
-    (Result Error {{template "type" dict "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "Nested" true}} -> msg) -> Request {{template "type" dict "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "Nested" true}} msg
+    Request {{template "type" dict "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "Nested" true}}
 {{- else if gt (len $method.Outputs) 1 -}}
-    (Result Error { {{ range $i, $output := $method.Outputs }}{{if $i}}, {{end}}{{$output.Name}} : {{template "type" dict "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap}}{{ end }} } -> msg) -> Request { {{ range $i, $output := $method.Outputs }}{{if $i}}, {{end}}{{$output.Name}} : {{template "type" dict "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap}}{{ end }} } msg
+    Request { {{ range $i, $output := $method.Outputs }}{{if $i}}, {{end}}{{$output.Name}} : {{template "type" dict "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap}}{{ end }} }
 {{- end }}
 
 {{- end }}

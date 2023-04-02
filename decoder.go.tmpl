@@ -6,7 +6,7 @@
 
 {{- if isMapType $type -}}
     
-    (decodeDict {{template "decoder" dict "Type" (mapKeyType $type) "TypeMap" $typeMap}} {{template "decoder" dict "Type" (mapValueType $type) "TypeMap" $typeMap}})
+    (decodeDict {{if (eq (mapKeyType $type) "Int") }} dictIntKey {{else}} dictStringKey {{end}} {{template "decoder" dict "Type" (mapValueType $type) "TypeMap" $typeMap}})
     
 {{- else if isListType $type -}}
 

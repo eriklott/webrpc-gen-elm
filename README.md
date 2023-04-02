@@ -17,7 +17,7 @@ Change any of the following values by passing `-option="Value"` CLI flag to `web
 
 | webrpc-gen -option                  | Description                                  | Default value      |
 |-------------------------------------|----------------------------------------------|--------------------|
-| `-module=<name>`                    | module name                                  | `"API"`            |
+| `-module=<name>`                    | module name                                  | `"Api"`            |
 | `-baseurl=<url>`                    | base url for api requests                    | `""`               |
 | `-credentials`                      | send credentials with cross-site requests    | false              |
 | `-timeout=3000`                     | request timeout duration in milliseconds     | no timeout         |

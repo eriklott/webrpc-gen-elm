@@ -18,8 +18,12 @@
   },
   "homepage": "https://github.com/eriklott/webrpc-gen-elm#readme",
   "devDependencies": {
+    "cypress": "^12.9.0",
     "elm": "^0.19.1-5",
     "elm-format": "^0.8.6",
     "elm-test": "^0.19.1-revision12"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
   }
 }

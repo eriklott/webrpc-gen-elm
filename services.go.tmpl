@@ -10,14 +10,14 @@
 {{- range $service := .Services }}
 
 
-type alias {{$service.Name}} msg =
+type alias {{$service.Name}} =
     {{- range $i, $method := .Methods }}
     {{ if $i }},{{ else -}} { {{- end}} {{ $method.Name | camelCase}} : {{ template "methodsignature" dict "Method" $method "TypeMap" $typeMap }} {{- if eq $i (len $service.Methods) -}} } {{- end }}
     {{- end }}
     }
 
 
-{{$service.Name | camelCase }} : {{$service.Name}} msg
+{{$service.Name | camelCase }} : {{$service.Name}}
 {{$service.Name | camelCase }} =
     {{ range $i, $method := .Methods }}
     {{- if $i }},{{ else -}} { {{- end}} {{ $method.Name | camelCase}} = {{$service.Name | camelCase }}{{$method.Name}} 
@@ -30,7 +30,7 @@ type alias {{$service.Name}} msg =
 {{$service.Name | camelCase}}{{$method.Name}}
 {{- if $method.Inputs }}
     {{- range $i, $_ := $method.Inputs }} {{.Name}}{{ end }}
-{{- end }} toMsg =
+{{- end }} =
     let
         encoder : Encode.Value
         encoder =
@@ -71,8 +71,7 @@ type alias {{$service.Name}} msg =
     request
         { url = "/rpc/{{- $service.Name -}}/{{- $method.Name -}}"
         , encoder = encoder
-        , decoder = decoder
-        , toMsg = toMsg
+        , decoder = decoder        
         }
 
 

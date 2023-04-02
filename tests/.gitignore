@@ -1,5 +1,8 @@
 bin/
 node_modules/
 elm-stuff/
+dist/
+cypress/videos/
 test.ridl
 src/API.elm
+.DS_Store

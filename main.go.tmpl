@@ -2,7 +2,7 @@
 
 {{- /* Options with default values. */ -}}
 {{- $opts := dict -}}
-{{- set $opts "module" (default .Opts.model "API") -}}
+{{- set $opts "module" (default .Opts.module "Api") -}}
 {{- set $opts "timeout" (default .Opts.timeout "") -}}
 {{- set $opts "baseurl" (default .Opts.baseurl "") -}}
 {{- set $opts "credentials" (exists .Opts "credentials") -}}
@@ -74,6 +74,7 @@ module {{get $opts "module"}} exposing
   , withTimeout
   , withTracker
   , send
+  , task
   )
   
   
@@ -90,6 +91,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Time exposing (Posix)
 import Dict exposing (Dict)
+import Task exposing (Task)
 import Iso8601
 
 

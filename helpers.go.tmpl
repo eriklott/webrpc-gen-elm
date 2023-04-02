@@ -14,7 +14,7 @@ decodeOptionalField fieldName decoder =
     let
         finishDecoding json =
             case Decode.decodeValue (Decode.field fieldName Decode.value) json of
-                Ok val ->
+                Ok _ ->
                     Decode.map Just (Decode.field fieldName decoder)
 
                 Err _ ->
@@ -26,26 +26,26 @@ decodeOptionalField fieldName decoder =
         ]
 
 
-decodeDict : Decoder comparable -> Decoder v -> Decoder (Dict comparable v)
-decodeDict keyDecoder valDecoder =
+decodeDict : (String -> Maybe comparable) -> Decoder v -> Decoder (Dict comparable v)
+decodeDict toKey valDecoder =
     Decode.keyValuePairs valDecoder
-        |> Decode.andThen (decodeDictFromTuples keyDecoder)
+        |> Decode.andThen (decodeDictFromTuples toKey)
 
 
-decodeDictFromTuples : Decoder comparable -> List ( String, v ) -> Decoder (Dict comparable v)
-decodeDictFromTuples keyDecoder tuples =
+decodeDictFromTuples : (String -> Maybe comparable) -> List ( String, v ) -> Decoder (Dict comparable v)
+decodeDictFromTuples toKey tuples =
     case tuples of
         [] ->
             Decode.succeed Dict.empty
 
         ( strKey, value ) :: rest ->
-            case Decode.decodeString keyDecoder strKey of
-                Ok key ->
-                    decodeDictFromTuples keyDecoder rest
+            case toKey strKey of
+                Just key ->
+                    decodeDictFromTuples toKey rest
                         |> Decode.andThen (Dict.insert key value >> Decode.succeed)
 
-                Err error ->
-                    Decode.fail (Decode.errorToString error)    
+                Nothing ->
+                    Decode.fail ("failed to decode key: " ++ strKey)  
 
 
 encodeMaybe : (a -> Encode.Value) -> Maybe a -> Encode.Value
@@ -53,4 +53,79 @@ encodeMaybe encoder =
     Maybe.map encoder >> Maybe.withDefault Encode.null
     
     
+expectJson : (Result Error a -> msg) -> Decoder a -> Http.Expect msg
+expectJson toMsg decoder =
+    Http.expectStringResponse 
+        toMsg 
+        (\response ->
+            case response of
+                Http.BadUrl_ url ->
+                    Err (BadUrl url)
+
+                Http.Timeout_ ->
+                    Err Timeout
+
+                Http.NetworkError_ ->
+                    Err NetworkError
+
+                Http.BadStatus_ metadata body ->
+                    case Decode.decodeString errorResponseDecoder body of
+                        Ok errorResponse ->
+                            Err (BadStatus metadata.statusCode errorResponse)
+
+                        Err err ->
+                            Err (BadBody (Decode.errorToString err))
+
+                Http.GoodStatus_ _ body ->
+                    case Decode.decodeString decoder body of
+                        Ok value ->
+                            Ok value
+
+                        Err err ->
+                            Err (BadBody (Decode.errorToString err))
+        )
+
+
+jsonResolver : Decoder a -> Http.Resolver Error a
+jsonResolver decoder =
+    Http.stringResolver
+        (\ response ->
+            case response of
+                Http.BadUrl_ url ->
+                    Err (BadUrl url)
+
+                Http.Timeout_ ->
+                    Err Timeout
+
+                Http.NetworkError_ ->
+                    Err NetworkError
+
+                Http.BadStatus_ metadata body ->
+                    case Decode.decodeString errorResponseDecoder body of
+                        Ok errorResponse ->
+                            Err (BadStatus metadata.statusCode errorResponse)
+
+                        Err err ->
+                            Err (BadBody (Decode.errorToString err))
+
+                Http.GoodStatus_ _ body ->
+                    case Decode.decodeString decoder body of
+                        Ok value ->
+                            Ok value
+
+                        Err err ->
+                            Err (BadBody (Decode.errorToString err))
+        )
+
+
+dictStringKey : String -> Maybe String
+dictStringKey =
+    Just
+
+
+dictIntKey : String -> Maybe Int
+dictIntKey =
+    String.toInt
+
+
 {{- end -}}
