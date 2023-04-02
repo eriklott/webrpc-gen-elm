@@ -27,6 +27,14 @@ Example:
 webrpc-gen -schema=example.ridl -target=github.com/eriklott/webrpc-gen-elmg@v0.11.0 -module=API -baseurl=http://localhost:8080 -credentials -timeout=2000 -out=./API.elm
 ```
 
+## Tests
+
+```
+$ cd tests
+$ npm i
+$ npm run test
+```
+
 ## LICENSE
 
 [MIT LICENSE](./LICENSE)
