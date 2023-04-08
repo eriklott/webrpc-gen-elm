@@ -8,11 +8,24 @@
 
 
 type Error
-    = Http Http.Error
-    | Webrpc WebrpcError WebrpcErrorResponse
+    = BadUrl String
+    | Timeout
+    | NetworkError
+    | BadStatus Int
+    | WebrpcError WebrpcErrorName WebrpcErrorResponse    
+    | BadBody String
 
 
-type WebrpcError
+type alias WebrpcErrorResponse =
+    { name : WebrpcErrorName
+    , code : Int
+    , message : String
+    , cause : Maybe String
+    , httpStatus : Int
+    }
+
+
+type WebrpcErrorName
     {{- range $i, $webrpcError := $webrpcErrors }}
     {{if $i}}|{{else}}={{end}} {{ $webrpcError.Name }}
     {{- end }}
@@ -21,26 +34,27 @@ type WebrpcError
     {{- end }}
     
 
-type alias WebrpcErrorResponse =
-    { name : String
-    , code : Int
-    , message : String
-    , cause : Maybe String
-    , httpStatus : Int
-    }
-
-
-errorWebrpcDecoder : Decoder Error
-errorWebrpcDecoder =
-    Decode.succeed Webrpc
-        |> andMap (Decode.field "error" webrpcErrorDecoder)
+webrpcErrorDecoder : Decoder Error
+webrpcErrorDecoder =
+    Decode.succeed WebrpcError
+        |> andMap (Decode.field "error" webrpcErrorNameDecoder)
         |> andMap webrpcErrorResponseDecoder
 
 
-webrpcErrorDecoder : Decoder WebrpcError
-webrpcErrorDecoder =
+webrpcErrorResponseDecoder : Decoder WebrpcErrorResponse
+webrpcErrorResponseDecoder =
+    Decode.succeed WebrpcErrorResponse
+        |> andMap (Decode.field "error" webrpcErrorNameDecoder)
+        |> andMap (Decode.field "code" Decode.int)
+        |> andMap (Decode.field "msg" Decode.string)
+        |> andMap (decodeOptionalField "cause" Decode.string)
+        |> andMap (Decode.field "status" Decode.int)
+        
+
+webrpcErrorNameDecoder : Decoder WebrpcErrorName
+webrpcErrorNameDecoder =
     let
-        enumDecoder : String -> Decoder WebrpcError
+        enumDecoder : String -> Decoder WebrpcErrorName
         enumDecoder str =
             case str of
                 {{ range $i, $webrpcError := $webrpcErrors -}}
@@ -54,19 +68,10 @@ webrpcErrorDecoder =
 
                 {{ end -}}                
                 _ -> 
-                    Decode.fail ("unknown value for type WebrpcError: " ++ str)
+                    Decode.fail ("unknown value for type WebrpcErrorName: " ++ str)
     in
     Decode.string |> Decode.andThen enumDecoder     
 
 
-webrpcErrorResponseDecoder : Decoder WebrpcErrorResponse
-webrpcErrorResponseDecoder =
-    Decode.succeed WebrpcErrorResponse
-        |> andMap (Decode.field "error" Decode.string)
-        |> andMap (Decode.field "code" Decode.int)
-        |> andMap (Decode.field "msg" Decode.string)
-        |> andMap (decodeOptionalField "cause" Decode.string)
-        |> andMap (Decode.field "status" Decode.int)
-        
 
 {{ end -}}

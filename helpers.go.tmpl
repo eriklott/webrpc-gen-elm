@@ -60,21 +60,30 @@ expectJson toMsg decoder =
         (\response ->
             case response of
                 Http.BadUrl_ url ->
-                    Err (Http (Http.BadUrl url))
+                    Err (BadUrl url)
 
                 Http.Timeout_ ->
-                    Err (Http Http.Timeout)
+                    Err Timeout
 
                 Http.NetworkError_ ->
-                    Err (Http Http.NetworkError)
+                    Err NetworkError
 
-                Http.BadStatus_ _ body ->
-                    case Decode.decodeString errorWebrpcDecoder body of
-                        Ok webrpcErr ->
-                            Err webrpcErr
+                Http.BadStatus_ metadata body ->
+                    let
+                        contentType =
+                            metadata.headers
+                                |> Dict.get "Content-Type"
+                                |> Maybe.withDefault ""
+                    in
+                    if String.contains "application/json" contentType then
+                        case Decode.decodeString webrpcErrorDecoder body of
+                            Ok webrpcError ->
+                                Err webrpcError
 
-                        Err err ->
-                            Err (Http (Http.BadBody (Decode.errorToString err)))
+                            Err err ->
+                                Err (BadBody (Decode.errorToString err))
+                    else
+                        Err (BadStatus metadata.statusCode)
 
                 Http.GoodStatus_ _ body ->
                     case Decode.decodeString decoder body of
@@ -82,7 +91,7 @@ expectJson toMsg decoder =
                             Ok value
 
                         Err err ->
-                            Err (Http (Http.BadBody (Decode.errorToString err)))
+                            Err (BadBody (Decode.errorToString err))
         )
 
 
@@ -92,21 +101,30 @@ jsonResolver decoder =
         (\ response ->
             case response of
                 Http.BadUrl_ url ->
-                    Err (Http (Http.BadUrl url))
+                    Err (BadUrl url)
 
                 Http.Timeout_ ->
-                    Err (Http Http.Timeout)
+                    Err Timeout
 
                 Http.NetworkError_ ->
-                    Err (Http Http.NetworkError)
+                    Err NetworkError
 
-                Http.BadStatus_ _ body ->
-                    case Decode.decodeString errorWebrpcDecoder body of
-                        Ok webrpcErr ->
-                            Err webrpcErr
+                Http.BadStatus_ metadata body ->
+                    let
+                        contentType =
+                            metadata.headers
+                                |> Dict.get "Content-Type"
+                                |> Maybe.withDefault ""
+                    in
+                    if String.contains "application/json" contentType then
+                        case Decode.decodeString webrpcErrorDecoder body of
+                            Ok webrpcError ->
+                                Err webrpcError
 
-                        Err err ->
-                            Err (Http (Http.BadBody (Decode.errorToString err)))
+                            Err err ->
+                                Err (BadBody (Decode.errorToString err))
+                    else
+                        Err (BadStatus metadata.statusCode)
 
                 Http.GoodStatus_ _ body ->
                     case Decode.decodeString decoder body of
@@ -114,7 +132,7 @@ jsonResolver decoder =
                             Ok value
 
                         Err err ->
-                            Err (Http (Http.BadBody (Decode.errorToString err)))
+                            Err (BadBody (Decode.errorToString err))
         )
 
 
