@@ -60,21 +60,21 @@ expectJson toMsg decoder =
         (\response ->
             case response of
                 Http.BadUrl_ url ->
-                    Err (BadUrl url)
+                    Err (Http (Http.BadUrl url))
 
                 Http.Timeout_ ->
-                    Err Timeout
+                    Err (Http Http.Timeout)
 
                 Http.NetworkError_ ->
-                    Err NetworkError
+                    Err (Http Http.NetworkError)
 
-                Http.BadStatus_ metadata body ->
-                    case Decode.decodeString errorResponseDecoder body of
-                        Ok errorResponse ->
-                            Err (BadStatus metadata.statusCode errorResponse)
+                Http.BadStatus_ _ body ->
+                    case Decode.decodeString errorWebrpcDecoder body of
+                        Ok webrpcErr ->
+                            Err webrpcErr
 
                         Err err ->
-                            Err (BadBody (Decode.errorToString err))
+                            Err (Http (Http.BadBody (Decode.errorToString err)))
 
                 Http.GoodStatus_ _ body ->
                     case Decode.decodeString decoder body of
@@ -82,7 +82,7 @@ expectJson toMsg decoder =
                             Ok value
 
                         Err err ->
-                            Err (BadBody (Decode.errorToString err))
+                            Err (Http (Http.BadBody (Decode.errorToString err)))
         )
 
 
@@ -92,21 +92,21 @@ jsonResolver decoder =
         (\ response ->
             case response of
                 Http.BadUrl_ url ->
-                    Err (BadUrl url)
+                    Err (Http (Http.BadUrl url))
 
                 Http.Timeout_ ->
-                    Err Timeout
+                    Err (Http Http.Timeout)
 
                 Http.NetworkError_ ->
-                    Err NetworkError
+                    Err (Http Http.NetworkError)
 
-                Http.BadStatus_ metadata body ->
-                    case Decode.decodeString errorResponseDecoder body of
-                        Ok errorResponse ->
-                            Err (BadStatus metadata.statusCode errorResponse)
+                Http.BadStatus_ _ body ->
+                    case Decode.decodeString errorWebrpcDecoder body of
+                        Ok webrpcErr ->
+                            Err webrpcErr
 
                         Err err ->
-                            Err (BadBody (Decode.errorToString err))
+                            Err (Http (Http.BadBody (Decode.errorToString err)))
 
                 Http.GoodStatus_ _ body ->
                     case Decode.decodeString decoder body of
@@ -114,7 +114,7 @@ jsonResolver decoder =
                             Ok value
 
                         Err err ->
-                            Err (BadBody (Decode.errorToString err))
+                            Err (Http (Http.BadBody (Decode.errorToString err)))
         )
 
 

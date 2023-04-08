@@ -1,16 +1,27 @@
 {{- define "errors" -}}
+
+{{- $webrpcErrors := .WebrpcErrors -}}
+{{- $errors := .Errors -}}
+
+
 -- ERRORS
 
 
 type Error
-    = BadUrl String
-    | Timeout
-    | NetworkError
-    | BadStatus Int ErrorResponse
-    | BadBody String
+    = Http Http.Error
+    | Webrpc WebrpcError WebrpcErrorResponse
 
 
-type alias ErrorResponse =
+type WebrpcError
+    {{- range $i, $webrpcError := $webrpcErrors }}
+    {{if $i}}|{{else}}={{end}} {{ $webrpcError.Name }}
+    {{- end }}
+    {{- range $_, $error := $errors }}
+    | {{ $error.Name }}
+    {{- end }}
+    
+
+type alias WebrpcErrorResponse =
     { name : String
     , code : Int
     , message : String
@@ -19,9 +30,38 @@ type alias ErrorResponse =
     }
 
 
-errorResponseDecoder : Decoder ErrorResponse
-errorResponseDecoder =
-    Decode.succeed ErrorResponse
+errorWebrpcDecoder : Decoder Error
+errorWebrpcDecoder =
+    Decode.succeed Webrpc
+        |> andMap (Decode.field "error" webrpcErrorDecoder)
+        |> andMap webrpcErrorResponseDecoder
+
+
+webrpcErrorDecoder : Decoder WebrpcError
+webrpcErrorDecoder =
+    let
+        enumDecoder : String -> Decoder WebrpcError
+        enumDecoder str =
+            case str of
+                {{ range $i, $webrpcError := $webrpcErrors -}}
+                "{{ $webrpcError.Name }}" ->
+                    Decode.succeed {{ $webrpcError.Name }}
+
+                {{ end }}
+                {{- range $i, $error := $errors -}}
+                "{{ $error.Name }}" ->
+                    Decode.succeed {{ $error.Name }}
+
+                {{ end -}}                
+                _ -> 
+                    Decode.fail ("unknown value for type WebrpcError: " ++ str)
+    in
+    Decode.string |> Decode.andThen enumDecoder     
+
+
+webrpcErrorResponseDecoder : Decoder WebrpcErrorResponse
+webrpcErrorResponseDecoder =
+    Decode.succeed WebrpcErrorResponse
         |> andMap (Decode.field "error" Decode.string)
         |> andMap (Decode.field "code" Decode.int)
         |> andMap (Decode.field "msg" Decode.string)

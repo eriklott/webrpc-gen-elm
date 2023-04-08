@@ -55,7 +55,8 @@
 module {{get $opts "module"}} exposing 
   ( Value(..)
   , Error(..)
-  , ErrorResponse
+  , WebrpcError(..)
+  , WebrpcErrorResponse
   , Request
   {{- range $i, $t := .Types }}
   , {{ $t.Name }}{{ if eq $t.Kind "enum" }}(..){{end}}
@@ -115,7 +116,7 @@ webRpcSchemaHash =
 {{- template "request" dict "Opts" $opts }}
 {{- template "decoders" dict "Types" .Types "TypeMap" $typeMap }}
 {{- template "encoders" dict "Types" .Types "TypeMap" $typeMap }}
-{{- template "errors" }}
+{{- template "errors" dict "WebrpcErrors" .WebrpcErrors "Errors" .Errors  }}
 {{- template "value" }}
 {{- template "helpers" }}
 
