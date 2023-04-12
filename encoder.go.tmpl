@@ -21,17 +21,17 @@
     Encode.list {{ template "encoder" dict "Type" (listElemType $type) "TypeMap" $typeMap "Nested" true}}
     {{- if $nested}}){{ end -}}
 
-{{- else if isCoreType $type -}}
+{{- else if (eq (print $type) "timestamp") -}}
 
-    {{- if (eq (printf "%v" $type) "any" ) -}}
+    Iso8601.encode
+
+{{- else if (eq (print $type) "any") -}}
 
     valueEncoder
 
-    {{- else -}}
+{{- else if isCoreType $type -}}
 
     Encode.{{ get $typeMap $type | camelCase}}
-
-    {{- end -}}
 
 {{- else -}}{{- /* structs */ -}}
 

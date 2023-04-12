@@ -16,17 +16,13 @@
 
     Iso8601.decoder
 
-{{- else if isCoreType $type -}}
-
-    {{- if (eq (printf "%s" $type) "any") -}}
+{{- else if (eq (print $type) "any") -}}
 
     valueDecoder
-    
-    {{- else -}}
-    
+
+{{- else if isCoreType $type -}}
+
     Decode.{{ get $typeMap $type | camelCase}}
-    
-    {{- end -}}
     
 {{- else -}}{{- /* structs */ -}}
 
