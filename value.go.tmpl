@@ -5,12 +5,12 @@
 
 
 type Value
-    = Object (List ( String, Value ))
-    | Array (List Value)
-    | Bool Bool
-    | Null
-    | Numeric Float
-    | String String
+    = ObjectValue (List ( String, Value ))
+    | ArrayValue (List Value)
+    | BoolValue Bool
+    | NullValue
+    | NumericValue Float
+    | StringValue String
 
 
 valueDecoder : Decoder Value
@@ -18,43 +18,43 @@ valueDecoder =
     let
         objectValueDecoder =
             Decode.keyValuePairs (Decode.lazy (\_ -> valueDecoder))
-                |> Decode.map Object
+                |> Decode.map ObjectValue
 
         arrayValueDecoder =
             Decode.list (Decode.lazy (\_ -> valueDecoder))
-                |> Decode.map Array
+                |> Decode.map ArrayValue
     in
     Decode.oneOf
         [ objectValueDecoder
         , arrayValueDecoder
-        , Decode.null Null
-        , Decode.string |> Decode.map String
-        , Decode.float |> Decode.map Numeric
-        , Decode.bool |> Decode.map Bool
+        , Decode.null NullValue
+        , Decode.string |> Decode.map StringValue
+        , Decode.float |> Decode.map NumericValue
+        , Decode.bool |> Decode.map BoolValue
         ]
 
 
 valueEncoder : Value -> Encode.Value
 valueEncoder value =
     case value of
-        Object pairs ->
+        ObjectValue pairs ->
             pairs
                 |> List.map (\( k, v ) -> ( k, valueEncoder v ))
                 |> Encode.object
 
-        Array values ->
+        ArrayValue values ->
             Encode.list valueEncoder values
             
-        Bool bool ->
+        BoolValue bool ->
             Encode.bool bool
 
-        Null ->
+        NullValue ->
             Encode.null
 
-        Numeric float ->
+        NumericValue float ->
             Encode.float float
 
-        String string ->
+        StringValue string ->
             Encode.string string
 
 
