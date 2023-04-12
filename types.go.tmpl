@@ -20,7 +20,7 @@ type {{$type.Name}}
 type alias {{$type.Name}} =
     {{ range $i, $field := $type.Fields -}}
     {{ if $i }}, {{ else }}{ {{ end -}}    
-    {{ $field.Name }} : {{template "type" dict "Type" $field.Type "Optional" $field.Optional "TypeMap" $typeMap}} 
+    {{ if eq $field.Name "type" }}type_{{ else }}{{ $field.Name }}{{ end }} : {{template "type" dict "Type" $field.Type "Optional" $field.Optional "TypeMap" $typeMap}} 
     {{ end }}}
 
 {{ end -}}
