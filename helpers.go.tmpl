@@ -72,7 +72,7 @@ expectJson toMsg decoder =
                     let
                         contentType =
                             metadata.headers
-                                |> Dict.get "Content-Type"
+                                |> Dict.get "content-type"
                                 |> Maybe.withDefault ""
                     in
                     if String.contains "application/json" contentType then
@@ -113,7 +113,7 @@ jsonResolver decoder =
                     let
                         contentType =
                             metadata.headers
-                                |> Dict.get "Content-Type"
+                                |> Dict.get "content-type"
                                 |> Maybe.withDefault ""
                     in
                     if String.contains "application/json" contentType then
