@@ -6,11 +6,12 @@
 
 
 type Request a =
-    Request 
+    Request
         { url: String
         , decoder : Decoder a
         , encoder : Encode.Value
         , baseUrl : String
+        , headers : List Http.Header
         , withCredentials : Bool
         , tracker : Maybe String
         , timeout : Maybe Float
@@ -24,6 +25,7 @@ request { url, decoder, encoder } =
         , decoder = decoder
         , encoder = encoder
         , baseUrl = "{{$opts.baseurl}}"
+        , headers = []
         , withCredentials = {{ if $opts.credentials }}True{{else}}False{{end}}
         , timeout = {{ if $opts.timeout }}Just {{ $opts.timeout }}{{ else }}Nothing{{ end }}
         , tracker = Nothing
@@ -33,6 +35,11 @@ request { url, decoder, encoder } =
 withBaseUrl : String -> Request a -> Request a
 withBaseUrl baseUrl (Request req) =
     Request { req | baseUrl = baseUrl }
+
+
+withHeaders : List Http.Header -> Request a -> Request a
+withHeaders headers (Request req) =
+    Request { req | headers = headers }
 
 
 withCredentials : Bool -> Request a -> Request a
@@ -53,6 +60,9 @@ withTracker tracker (Request req) =
 send : (Result Error a -> msg) -> Request a -> Cmd msg
 send toMsg (Request req)  =
     let
+        headers =
+            req.headers
+
         url =
             req.baseUrl ++ req.url
 
@@ -66,7 +76,7 @@ send toMsg (Request req)  =
             req.timeout
 
         tracker =
-            req.tracker            
+            req.tracker
 
         httpRequest =
             if req.withCredentials then
@@ -77,7 +87,7 @@ send toMsg (Request req)  =
     in
     httpRequest
         { method = "POST"
-        , headers = []
+        , headers = headers
         , url = url
         , body = Http.jsonBody body
         , expect = expectJson toMsg decoder
@@ -89,6 +99,9 @@ send toMsg (Request req)  =
 task : Request a -> Task Error a
 task (Request req) =
     let
+        headers =
+            req.headers
+
         url =
             req.baseUrl ++ req.url
 
@@ -110,7 +123,7 @@ task (Request req) =
     in
     httpTask
         { method = "POST"
-        , headers = []
+        , headers = headers
         , url = url
         , body = Http.jsonBody body
         , resolver = jsonResolver decoder
