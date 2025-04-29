@@ -3,7 +3,7 @@ This repo contains the templates used by the webrpc-gen cli to code-generate web
 
 ## Usage
 ```
-webrpc-gen -schema=example.ridl -target=github.com/eriklott/webrpc-gen-elmg@v0.11.0 -module=API -out=./API.elm
+webrpc-gen -schema=example.ridl -target=github.com/eriklott/webrpc-gen-elmg@v0.11.7 -module=API -out=./API.elm
 
 # or
 
@@ -24,7 +24,7 @@ Change any of the following values by passing `-option="Value"` CLI flag to `web
 
 Example:
 ```
-webrpc-gen -schema=example.ridl -target=github.com/eriklott/webrpc-gen-elmg@v0.11.0 -module=API -baseurl=http://localhost:8080 -credentials -timeout=2000 -out=./API.elm
+webrpc-gen -schema=example.ridl -target=github.com/eriklott/webrpc-gen-elmg@v0.11.7 -module=API -baseurl=http://localhost:8080 -credentials -timeout=2000 -out=./API.elm
 ```
 
 ## LICENSE
