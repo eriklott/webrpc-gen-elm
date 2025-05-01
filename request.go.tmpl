@@ -37,14 +37,14 @@ withBaseUrl baseUrl (Request req) =
     Request { req | baseUrl = baseUrl }
 
 
-withHeaders : List Http.Header -> Request a -> Request a
-withHeaders headers (Request req) =
-    Request { req | headers = headers }
-
-
 withCredentials : Bool -> Request a -> Request a
 withCredentials withCreds (Request req) =
     Request { req | withCredentials = withCreds }
+
+
+withHeaders : List Http.Header -> Request a -> Request a
+withHeaders headers (Request req) =
+    Request { req | headers = headers }
 
 
 withTimeout : Maybe Float -> Request a -> Request a
